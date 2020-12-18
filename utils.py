@@ -114,7 +114,9 @@ def data_analysis(filenames):
         #
         hs.append(img.shape[0]) 
         ws.append(img.shape[1])
-        
+    
+    print(sorted(hs)[:5])
+    print(sorted(ws)[:5])
     hs = np.array(hs)
     ws = np.array(ws)
     
@@ -139,3 +141,5 @@ if __name__ == "__main__":
                 
     imgs = img_loader(filenames)
     validation_data = validation_mag3_set(imgs)
+    
+    data_analysis(filenames)

@@ -3,7 +3,7 @@ import os
 import argparse
 import numpy as np
 import tensorflow.keras.models as km
-from model import get_espcn, get_fsrcnn, get_vdsr
+from model import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
 from utils import get_filenames, img_loader, one2four_image, four2one_image
 import cv2 as cv
 
@@ -26,20 +26,22 @@ if __name__=="__main__":
     # create model
     if args.model and args.weights:
         
-        if args.model == "espcn":
+        if args.model == "srcnn":
+            model = get_srcnn()
+        
+        elif args.model == "espcn":
             model = get_espcn(args.mag)
-            model.load_weights(args.weights)
+
         elif args.model == "fsrcnn":
             model = get_fsrcnn(args.mag)
-            model.load_weights(args.weights)
+
         elif args.model == "vdsr":
             model = get_vdsr()
-            model.load_weights(args.weights)
+            
         else:
             raise ValueError("select correct model")
             
-    elif args.weights:
-        model = km.load_model(args.weights)
+    model.load_weights(args.weights)
     
     if os.path.isdir(args.data):
         filenames = get_filenames(args.data)
@@ -51,7 +53,7 @@ if __name__=="__main__":
     imgs = img_loader(filenames)
     # inference
     for i, img in enumerate(imgs):
-        if args.model in ["srcnn", "vdsr",]:
+        if args.model in ["srcnn", "vdsr"]:
             img = cv.resize(img, (img.shape[1]*args.mag, img.shape[0]*args.mag),
                             interpolation=cv.INTER_CUBIC)
         if args.aug:

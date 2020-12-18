@@ -7,7 +7,7 @@ import os
 #import tensorflow.keras.layers as kl
 #import tensorflow.keras.models as km
 from utils import get_filenames, data_generator, preprocess_xy
-from model import get_espcn, get_fsrcnn, get_vdsr, get_drcn
+from model import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
 
 
 if __name__ == "__main__":
@@ -40,7 +40,9 @@ if __name__ == "__main__":
     
     # create model
     print("create model")
-    if args.model == "espcn":
+    if args.model == "srcnn":
+        model = get_srcnn()
+    elif args.model == "espcn":
         model = get_espcn(args.mag)
     elif args.model == "fsrcnn":
         model = get_fsrcnn(args.mag)
@@ -54,6 +56,7 @@ if __name__ == "__main__":
             model = get_drcn(args.mid)
         else:
             model = get_drcn()
+            
     else:
         raise ValueError("select correct model")
     
@@ -90,9 +93,10 @@ if __name__ == "__main__":
         )
     
     print("save model")
-    if not os.path.isdir('log'):
-        os.mkdir('log')
+
     if args.export:
-        model.save(args.export)
+        model.save_weights(args.export)
     else:
-        model.save(os.path.join('log','{}_x{}.h5'.format(args.model, args.mag)))
+        if not os.path.isdir('log'):
+            os.mkdir('log')
+        model.save_weights(os.path.join('log','{}_x{}.h5'.format(args.model, args.mag)))

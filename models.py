@@ -98,33 +98,69 @@ def get_vdsr(num_layers=20):
     model.summary()
     return model
 
+class ScaleLayer(kl.Layer):
+    def __init__(self, initializer=None, regularizer=None):
+        super(ScaleLayer, self).__init__()
+        self.initializer = initializer
+        self.regularizer = regularizer
+        
+    def build(self, input_shape):
+        self.scale = self.add_weight(name='scale',
+                                     initializer=self.initializer,
+                                     regularizer=self.regularizer,
+                                     trainable=True)
+        super(ScaleLayer, self).build(input_shape)  
+    
+    def call(self, inputs):
+        return inputs * self.scale
+    
+    def get_config(self):
+        return {"initializer": self.initializer,
+                "regularizer": self.regularizer}
+    
+
+   
+
+    
 def get_drcn(num_recurrence=16):
+    
+    regularizer = tf.keras.regularizers.L2(0.01)
+    
     lr = keras.layers.Input(shape=(None, None, 3))
     
     # embedding network
-    x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu')(lr)
-    x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu')(x)
+    x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
+                  kernel_regularizer=regularizer, bias_regularizer=regularizer)(lr)
+    x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
+                  kernel_regularizer=regularizer, bias_regularizer=regularizer)(x)
         
         
     # inferece network
     outputs = []
-    W = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu')
+    W = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
+                  kernel_regularizer=regularizer, bias_regularizer=regularizer)
     for i in range(num_recurrence):
         x = W(x)
         outputs.append(x)
     
     # reconstruction newtwork
-    W1 = kl.Conv2D(filters=3, kernel_size=3, padding='same', activation='relu')
-    W2 = keras.backend.variable(np.array([1/num_recurrence for i in range(num_recurrence)]))
+    W1 = kl.Conv2D(filters=3, kernel_size=3, padding='same', activation='relu',
+                   kernel_regularizer=regularizer, bias_regularizer=regularizer)
+    
+    initializer = keras.initializers.Constant(1/num_recurrence)
+    W2 = [ScaleLayer(initializer=initializer, regularizer=regularizer) for i in range(num_recurrence)]
+
     for i in range(num_recurrence):
-        outputs[i] = (W1(outputs[i]) + lr)*W2[i]
+        outputs[i] = W2[i](W1(outputs[i]) + lr)
     hr = kl.add(outputs)
     
     model = keras.Model(inputs=lr, outputs=hr)
     model.summary()
     return model
-    
+
 if __name__ == "__main__":
+    import os
+    
     '''
     # espcn test
     model = get_espcn(3)
@@ -150,8 +186,19 @@ if __name__ == "__main__":
         assert output.shape[2] == i*3
     ''' 
     model = get_drcn(16)
+    model.save_weights("weights.h5")
+    model.load_weights("weights.h5")
     for i in range(17, 26):
         input_img = kl.Input(shape=(i*3, i*3, 3))
         output = model(input_img)
         assert output.shape[1] == i*3
         assert output.shape[2] == i*3
+`
+    
+    if os.path.exists("weight.h5"):
+        os.remove("weights.h5")
+    if os.path.exists("model.h5"):
+        os.remove("model.h5")
+    
+    
+    
