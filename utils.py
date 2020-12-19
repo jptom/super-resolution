@@ -58,20 +58,18 @@ def random_rotate(x):
     r = np.random.randint(0, 4)
     return np.rot90(x, r)
     
-def preprocess_xy(imgs, min_size, max_size, mag, up_scale=False):    
+def preprocess_xy(imgs, mag:int, size:int, up_scale=False):    
     batch_x = []
     batch_y = []
     imgs, imgs_backup = itertools.tee(imgs)
-    real_max = int(min_shape(imgs_backup)/mag)
-    max_size = min(max_size+1, real_max)
-    hw = np.random.randint(min_size, max_size)
+
     for img in imgs:
-        y = random_clip(img, (hw, hw), mag)
+        y = random_clip(img, (size, size), mag)
         y = random_flip(y)
         y = random_rotate(y)
-        x = down_sampling(y, (hw, hw))
+        x = down_sampling(y, (size, size))
         if up_scale:
-            x = cv.resize(x, (hw*mag, hw*mag), interpolation=cv.INTER_CUBIC)
+            x = cv.resize(x, (size*mag, size*mag), interpolation=cv.INTER_CUBIC)
         batch_x.append(x)
         batch_y.append(y)
 
@@ -80,12 +78,23 @@ def preprocess_xy(imgs, min_size, max_size, mag, up_scale=False):
 def img_loader(filenames):
     for filename in filenames:
         yield cv.imread(filename)/255.0
+
+def select_img_by_size(filenames, size):
+    ret_filenames = []
+    for filename in filenames:
+        img = cv.imread(filename)
+        if img.shape[0] > size and img.shape[1] > size:
+            ret_filenames.append(filename)
+            
+    return ret_filenames
+        
     
-def data_generator(filenames, batch_size, preprocess_xy, **keywargs):
+def data_generator(filenames, batch_size, preprocess_xy, mag:int, size:int, up_scale=False):    
+    filenames = select_img_by_size(filenames, size*mag)
     while True:
         batch_paths  = np.random.choice(a=filenames, size=batch_size)
         imgs = img_loader(batch_paths)
-        batch_x, batch_y = preprocess_xy(imgs, **keywargs)
+        batch_x, batch_y = preprocess_xy(imgs, mag, size, up_scale=up_scale)
         
         yield batch_x, batch_y
         
@@ -129,13 +138,23 @@ if __name__ == "__main__":
     batch = 32
     # data generator test
     filenames = get_filenames("dataset/training_hr_images") 
-    gen = data_generator(filenames, batch, preprocess_xy, min_size=25, max_size=41, mag=3)
+    gen = data_generator(filenames, batch, preprocess_xy, mag=3, size=25)
     step = 0
     for batch_x, batch_y in gen:
         step += 1
         for i in range(batch):
             assert batch_x[i].shape[0]*3 == batch_y[0].shape[0], "height doesn't match"
             assert batch_x[i].shape[1]*3 == batch_y[0].shape[1], "width doesn't match"
+        if step == 10:
+           break
+       
+    gen = data_generator(filenames, batch, preprocess_xy, mag=3, size=41, up_scale=True)
+    step = 0
+    for batch_x, batch_y in gen:
+        step += 1
+        for i in range(batch):
+            assert batch_x[i].shape[0] == batch_y[0].shape[0], "height doesn't match"
+            assert batch_x[i].shape[1] == batch_y[0].shape[1], "width doesn't match"
         if step == 10:
            break
                 

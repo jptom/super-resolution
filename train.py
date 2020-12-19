@@ -42,15 +42,19 @@ if __name__ == "__main__":
     print("create model")
     if args.model == "srcnn":
         model = get_srcnn()
+        
     elif args.model == "espcn":
         model = get_espcn(args.mag)
+        
     elif args.model == "fsrcnn":
         model = get_fsrcnn(args.mag)
+        
     elif args.model == "vdsr":
         if args.mid:
             model = get_vdsr(args.mid)
         else:
             model = get_vdsr()
+            
     elif args.model == "drcn":
         if args.mid:
             model = get_drcn(args.mid)
@@ -69,7 +73,7 @@ if __name__ == "__main__":
     else:
         pre_up_scale = False
         
-    gen = data_generator(filenames, args.batch, preprocess_xy, min_size=25, max_size=26, 
+    gen = data_generator(filenames, args.batch, preprocess_xy, size=33, 
                          mag=args.mag, up_scale=pre_up_scale)    
     
     

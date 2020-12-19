@@ -2,7 +2,6 @@
 import os
 import argparse
 import numpy as np
-import tensorflow.keras.models as km
 from model import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
 from utils import get_filenames, img_loader, one2four_image, four2one_image
 import cv2 as cv
@@ -10,8 +9,8 @@ import cv2 as cv
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("--model", type=str, 
-                        choices=["srcnn", "espcn", "fsrcnn", "vdsr"], 
+    parser.add_argument("--model", type=str, required=True,
+                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn"], 
                         help="select model")
     parser.add_argument("--mag", type=int, required=True,
                         help="upsampling factor")
@@ -24,22 +23,24 @@ if __name__=="__main__":
     args = parser.parse_args() 
     
     # create model
-    if args.model and args.weights:
         
-        if args.model == "srcnn":
-            model = get_srcnn()
+    if args.model == "srcnn":
+        model = get_srcnn()
+    
+    elif args.model == "espcn":
+        model = get_espcn(args.mag)
+
+    elif args.model == "fsrcnn":
+        model = get_fsrcnn(args.mag)
+
+    elif args.model == "vdsr":
+        model = get_vdsr()
+    
+    elif args.model == "drcn":
+        model = get_drcn
         
-        elif args.model == "espcn":
-            model = get_espcn(args.mag)
-
-        elif args.model == "fsrcnn":
-            model = get_fsrcnn(args.mag)
-
-        elif args.model == "vdsr":
-            model = get_vdsr()
-            
-        else:
-            raise ValueError("select correct model")
+    else:
+        raise ValueError("select correct model")
             
     model.load_weights(args.weights)
     
