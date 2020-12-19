@@ -90,7 +90,6 @@ def select_img_by_size(filenames, size):
         
     
 def data_generator(filenames, batch_size, preprocess_xy, mag:int, size:int, up_scale=False):    
-    filenames = select_img_by_size(filenames, size*mag)
     while True:
         batch_paths  = np.random.choice(a=filenames, size=batch_size)
         imgs = img_loader(batch_paths)

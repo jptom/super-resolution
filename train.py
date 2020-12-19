@@ -6,9 +6,10 @@ import os
 #import tensorflow.keras.backend as kb
 #import tensorflow.keras.layers as kl
 #import tensorflow.keras.models as km
-from utils import get_filenames, data_generator, preprocess_xy
-from model import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
-
+import cv2 as cv
+from utils import get_filenames, data_generator, preprocess_xy, select_img_by_size
+from models import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
+from functions import psnr
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -20,8 +21,10 @@ if __name__ == "__main__":
                         help="upsampling factor. Default 3")
     parser.add_argument("--mid", type=int, 
                         help="number of mid layers.")
-    parser.add_argument("--data", type=str, default="dataset",
+    parser.add_argument("--data", type=str, required=True,
                         help="dataset path")
+    parser.add_argument("--imsize", type=int, default=33,
+                        help="image size of training")
     parser.add_argument("--batch", type=int, default=32, 
                         help="batch size. Default 32")
     parser.add_argument("--steps", type=int, default=400,
@@ -66,6 +69,7 @@ if __name__ == "__main__":
     
     # load dataset
     filenames = get_filenames(args.data)
+    filenames = select_img_by_size(filenames, args.imsize*args.mag)
     
     # data generator
     if args.model in ["srcnn", "vdsr", "drcn"]:
@@ -73,19 +77,20 @@ if __name__ == "__main__":
     else:
         pre_up_scale = False
         
-    gen = data_generator(filenames, args.batch, preprocess_xy, size=33, 
+    gen = data_generator(filenames, args.batch, preprocess_xy, size=args.imsize, 
                          mag=args.mag, up_scale=pre_up_scale)    
     
     
     # loss function
     def loss_fun(y_true, y_pred):
         pass
-    
+
     # compile model
     print("start compling")
     model.compile(
         loss='mean_squared_error',
         optimizer='adam',
+        metrics=[psnr]
         )
 
     # train
@@ -93,11 +98,10 @@ if __name__ == "__main__":
     model.fit(
         gen,
         steps_per_epoch=args.steps,
-        epochs=args.epochs
+        epochs=args.epochs,
         )
     
-    print("save model")
-
+    print("save weights")
     if args.export:
         model.save_weights(args.export)
     else:

@@ -124,31 +124,31 @@ class ScaleLayer(kl.Layer):
     
 def get_drcn(num_recurrence=16):
     
-    regularizer = tf.keras.regularizers.L2(0.01)
+    regularizer = tf.keras.regularizers.L2(0.0001)
     
     lr = keras.layers.Input(shape=(None, None, 3))
     
     # embedding network
     x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
-                  kernel_regularizer=regularizer, bias_regularizer=regularizer)(lr)
+                  kernel_regularizer=regularizer)(lr)
     x = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
-                  kernel_regularizer=regularizer, bias_regularizer=regularizer)(x)
+                  kernel_regularizer=regularizer)(x)
         
         
     # inferece network
     outputs = []
     W = kl.Conv2D(filters=256, kernel_size=3, padding='same', activation='relu',
-                  kernel_regularizer=regularizer, bias_regularizer=regularizer)
+                  kernel_regularizer=regularizer)
     for i in range(num_recurrence):
         x = W(x)
         outputs.append(x)
     
     # reconstruction newtwork
     W1 = kl.Conv2D(filters=3, kernel_size=3, padding='same', activation='relu',
-                   kernel_regularizer=regularizer, bias_regularizer=regularizer)
+                   kernel_regularizer=regularizer)
     
     initializer = keras.initializers.Constant(1/num_recurrence)
-    W2 = [ScaleLayer(initializer=initializer, regularizer=regularizer) for i in range(num_recurrence)]
+    W2 = [ScaleLayer(initializer=initializer, regularizer=None) for i in range(num_recurrence)]
 
     for i in range(num_recurrence):
         outputs[i] = W2[i](W1(outputs[i]) + lr)
@@ -157,6 +157,7 @@ def get_drcn(num_recurrence=16):
     model = keras.Model(inputs=lr, outputs=hr)
     model.summary()
     return model
+
 
 if __name__ == "__main__":
     import os
@@ -193,7 +194,7 @@ if __name__ == "__main__":
         output = model(input_img)
         assert output.shape[1] == i*3
         assert output.shape[2] == i*3
-`
+
     
     if os.path.exists("weight.h5"):
         os.remove("weights.h5")
