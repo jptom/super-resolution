@@ -2,7 +2,7 @@
 import os
 import argparse
 import numpy as np
-from model import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
+from model import get_model
 from utils import get_filenames, img_loader, one2four_image, four2one_image
 import cv2 as cv
 
@@ -10,7 +10,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--model", type=str, required=True,
-                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn"], 
+                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr"], 
                         help="select model")
     parser.add_argument("--mag", type=int, required=True,
                         help="upsampling factor")
@@ -24,32 +24,17 @@ if __name__=="__main__":
     
     # create model
         
-    if args.model == "srcnn":
-        model = get_srcnn()
+    # create model
+    print("create model")
+    model = get_model(args.model, args.mag)
     
-    elif args.model == "espcn":
-        model = get_espcn(args.mag)
-
-    elif args.model == "fsrcnn":
-        model = get_fsrcnn(args.mag)
-
-    elif args.model == "vdsr":
-        model = get_vdsr()
-    
-    elif args.model == "drcn":
-        model = get_drcn
-        
-    else:
-        raise ValueError("select correct model")
-            
     model.load_weights(args.weights)
     
     if os.path.isdir(args.data):
         filenames = get_filenames(args.data)
-        show = False
+
     elif os.path.isfile(args.data):
         filenames = [args.data]
-        show = True
 
     imgs = img_loader(filenames)
     # inference
@@ -77,6 +62,4 @@ if __name__=="__main__":
             output *= 255
             output = np.squeeze(output)
         high_img = output.astype(np.uint8)
-        cv.imshow('result', high_img)
-        cv.waitKey(0)
         cv.imwrite(os.path.join('0756153', os.path.basename(filenames[i])), high_img)
