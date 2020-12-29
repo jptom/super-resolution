@@ -2,7 +2,7 @@
 import argparse
 import os
 #import tensorflow as tf
-#import tensorflow.keras as keras
+import tensorflow.keras as keras
 #import tensorflow.keras.backend as kb
 #import tensorflow.keras.layers as kl
 #import tensorflow.keras.models as km
@@ -59,13 +59,13 @@ if __name__ == "__main__":
     
     
     # optimizer
-    #optimizer = 
+    optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
 
     # compile model
     print("start compling")
     model.compile(
         loss='mean_squared_error',
-        optimizer='adam',
+        optimizer=optimizer,
         metrics=[psnr]
         )
 
