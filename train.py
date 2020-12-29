@@ -6,16 +6,15 @@ import os
 #import tensorflow.keras.backend as kb
 #import tensorflow.keras.layers as kl
 #import tensorflow.keras.models as km
-import cv2 as cv
 from utils import get_filenames, data_generator, preprocess_xy, select_img_by_size
-from models import get_srcnn, get_espcn, get_fsrcnn, get_vdsr, get_drcn
+from models import get_model
 from functions import psnr
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--model", type=str, required=True,
-                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn"], 
+                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr"], 
                         help="select model")
     parser.add_argument("--mag", type=int, default=3,
                         help="upsampling factor. Default 3")
@@ -24,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--data", type=str, required=True,
                         help="dataset path")
     parser.add_argument("--imsize", type=int, default=33,
-                        help="image size of training")
+                        help="image size of training. Default 33")
     parser.add_argument("--batch", type=int, default=32, 
                         help="batch size. Default 32")
     parser.add_argument("--steps", type=int, default=400,
@@ -33,9 +32,9 @@ if __name__ == "__main__":
                         help="Number of epochs to train the model. Default 5")
     parser.add_argument("--loss", type=str, default="mse", 
                         choices=["mse", "mae", "bouble", "triple"])
-    parser.add_argument("--import", type=str,
+    parser.add_argument("--in", type=str,
                         help="initial weight path")
-    parser.add_argument("--export", type=str,
+    parser.add_argument("--out", type=str,
                         help="save weight path. Default ./log/{model}.h5")
     args = parser.parse_args() 
     
@@ -43,29 +42,7 @@ if __name__ == "__main__":
     
     # create model
     print("create model")
-    if args.model == "srcnn":
-        model = get_srcnn()
-        
-    elif args.model == "espcn":
-        model = get_espcn(args.mag)
-        
-    elif args.model == "fsrcnn":
-        model = get_fsrcnn(args.mag)
-        
-    elif args.model == "vdsr":
-        if args.mid:
-            model = get_vdsr(args.mid)
-        else:
-            model = get_vdsr()
-            
-    elif args.model == "drcn":
-        if args.mid:
-            model = get_drcn(args.mid)
-        else:
-            model = get_drcn()
-            
-    else:
-        raise ValueError("select correct model")
+    model = get_model(args.model, args.mag)
     
     # load dataset
     filenames = get_filenames(args.data)
@@ -81,9 +58,8 @@ if __name__ == "__main__":
                          mag=args.mag, up_scale=pre_up_scale)    
     
     
-    # loss function
-    def loss_fun(y_true, y_pred):
-        pass
+    # optimizer
+    #optimizer = 
 
     # compile model
     print("start compling")
@@ -102,8 +78,8 @@ if __name__ == "__main__":
         )
     
     print("save weights")
-    if args.export:
-        model.save_weights(args.export)
+    if args.out:
+        model.save_weights(args.out)
     else:
         if not os.path.isdir('log'):
             os.mkdir('log')

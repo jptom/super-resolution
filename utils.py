@@ -89,11 +89,14 @@ def select_img_by_size(filenames, size):
     return ret_filenames
         
     
-def data_generator(filenames, batch_size, preprocess_xy, mag:int, size:int, up_scale=False):    
+def data_generator(filenames, batch_size, preprocess_xy, mag:int, size:int, up_scale=False, gt_range=None):    
     while True:
         batch_paths  = np.random.choice(a=filenames, size=batch_size)
         imgs = img_loader(batch_paths)
         batch_x, batch_y = preprocess_xy(imgs, mag, size, up_scale=up_scale)
+        
+        if gt_range:
+            batch_y = batch_y*(gt_range[1] - gt_range[0]) + gt_range[0]
         
         yield batch_x, batch_y
         
