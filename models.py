@@ -80,7 +80,7 @@ def get_edsr(factor, filters=256, num_resblocks=32):
     x = kl.Conv2D(filters=filters, kernel_size=9, padding='same')(lr)
     skip = tf.identity(x)
     for i in range(num_resblocks):
-        x = residual_block(x, filters, batch_norm=False, scaling=True)
+        x = residual_block(x, filters, batch_norm=False, scaling=0.1)
         
     x += skip
     if factor == 3:
