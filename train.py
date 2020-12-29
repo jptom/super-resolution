@@ -32,7 +32,7 @@ if __name__ == "__main__":
                         help="Number of epochs to train the model. Default 5")
     parser.add_argument("--loss", type=str, default="mse", 
                         choices=["mse", "mae"])
-    parser.add_argument("--in", type=str,
+    parser.add_argument("--weights", type=str,
                         help="initial weight path")
     parser.add_argument("--out", type=str,
                         help="save weight path. Default ./log/{model}.h5")
@@ -43,6 +43,10 @@ if __name__ == "__main__":
     # create model
     print("create model")
     model = get_model(args.model, args.mag)
+    
+    if args.weights:
+        model.load_weights(args.weights)
+        
     
     # load dataset
     filenames = get_filenames(args.data)
@@ -61,7 +65,7 @@ if __name__ == "__main__":
     if args.loss=="mse":    
         loss = keras.losses.mean_squared_error
     elif args.loss=="mae":
-        less = keras.losses.mean_absolute_error
+        loss = keras.losses.mean_absolute_error
     
     # optimizer
     optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
