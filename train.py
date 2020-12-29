@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=5, 
                         help="Number of epochs to train the model. Default 5")
     parser.add_argument("--loss", type=str, default="mse", 
-                        choices=["mse", "mae", "bouble", "triple"])
+                        choices=["mse", "mae"])
     parser.add_argument("--in", type=str,
                         help="initial weight path")
     parser.add_argument("--out", type=str,
@@ -58,13 +58,18 @@ if __name__ == "__main__":
                          mag=args.mag, up_scale=pre_up_scale)    
     
     
+    if args.loss=="mse":    
+        loss = keras.losses.mean_squared_error
+    elif args.loss=="mae":
+        less = keras.losses.mean_absolute_error
+    
     # optimizer
     optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
 
     # compile model
     print("start compling")
     model.compile(
-        loss='mean_squared_error',
+        loss=loss,
         optimizer=optimizer,
         metrics=[psnr]
         )
