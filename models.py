@@ -230,9 +230,11 @@ def get_resatsr(factor, filters=64, num_resblocks=16):
     if factor == 3:
         x = kl.Conv2D(filters=factor**2*3, kernel_size=3, padding='same')(x)
         x = kl.Lambda(lambda z: tf.nn.depth_to_space(z, factor))(x)
-    
+        
+    x = kl.Conv2D(filters=3, kernel_size=3, padding='same')(x)
     attention = kl.Conv2D(filters=3, kernel_size=1, padding='same', activation='sigmoid')(x)
     x = x*attention
+    x = kl.Conv2D(filters=3, kernel_size=1, padding='same')(x)
     model = keras.Model(inputs=lr, outputs=x)
     model.summary()
     return model
