@@ -60,7 +60,7 @@ if __name__ == "__main__":
         
         
     # image range
-    r = None #default (0, 1)
+    r = (-1, 1) #default (0, 1)
     gen = data_generator(filenames, args.batch, preprocess_xy, size=args.imsize, 
                          mag=args.mag, up_scale=pre_up_scale, gt_range=r)    
     
@@ -73,13 +73,14 @@ if __name__ == "__main__":
     # optimizer
     optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
 
-
+    psnr = PSNR(r)
+    psnr.__name__ = "psnr"
     # compile model
     print("start compling")
     model.compile(
         loss=loss,
         optimizer=optimizer,
-        metrics=[PSNR(r)]
+        metrics=[psnr]
         )
 
     # train
