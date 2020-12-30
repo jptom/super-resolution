@@ -8,7 +8,7 @@ class PSNR:
         if r == None:
             self.r = 1
         else:
-            self.r = r**2
+            self.r = (r[1]-r[0])**2
     
     def __call__(self, y_true, y_pred):
         return 10*kb.log(self.r/kb.mean(kb.flatten((y_true - y_pred))**2))/kb.log(10.0)
