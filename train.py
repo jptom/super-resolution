@@ -8,7 +8,7 @@ import tensorflow.keras as keras
 #import tensorflow.keras.models as km
 from utils import get_filenames, data_generator, preprocess_xy, select_img_by_size
 from models import get_model
-from functions import psnr
+from functions import PSNR
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -58,8 +58,11 @@ if __name__ == "__main__":
     else:
         pre_up_scale = False
         
+        
+    # image range
+    r = None #default (0, 1)
     gen = data_generator(filenames, args.batch, preprocess_xy, size=args.imsize, 
-                         mag=args.mag, up_scale=pre_up_scale)    
+                         mag=args.mag, up_scale=pre_up_scale, gt_range=r)    
     
     
     if args.loss=="mse":    
@@ -70,12 +73,13 @@ if __name__ == "__main__":
     # optimizer
     optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
 
+
     # compile model
     print("start compling")
     model.compile(
         loss=loss,
         optimizer=optimizer,
-        metrics=[psnr]
+        metrics=[PSNR(r)]
         )
 
     # train

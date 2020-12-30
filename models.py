@@ -219,19 +219,21 @@ def get_drcn(num_recurrence=16):
     model.summary()
     return model
 
-def get_resatsr(factor, filters=64, num_resblocks=16):
+def get_resatsr(factor, filters=256, num_resblocks=32):
     lr = kl.Input(shape=(None, None, 3))
     x = kl.Conv2D(filters=filters, kernel_size=9, padding='same')(lr)
     skip = tf.identity(x)
     for i in range(num_resblocks):
         x = residual_block(x, filters, batch_norm=False, scaling=0.1)
-        
+    
+    attention = kl.Conv2D(filters=filters, kernel_size=1, padding='same', activation='sigmoid')(x)
+    x = x*attention
     x += skip
     if factor == 3:
         x = kl.Conv2D(filters=factor**2*3, kernel_size=3, padding='same')(x)
         x = kl.Lambda(lambda z: tf.nn.depth_to_space(z, factor))(x)
         
-    x = kl.Conv2D(filters=3, kernel_size=3, padding='same')(x)
+    x = kl.Conv2D(filters=3, kernel_size=3, padding='same', activation='relu')(x)
     attention = kl.Conv2D(filters=3, kernel_size=1, padding='same', activation='sigmoid')(x)
     x = x*attention
     x = kl.Conv2D(filters=3, kernel_size=1, padding='same')(x)
