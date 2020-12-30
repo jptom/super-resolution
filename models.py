@@ -3,6 +3,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.backend as kb
 import tensorflow.keras.layers as kl
+import tensorflow.keras.models as km
     
 def get_srcnn():
     model = keras.Sequential()
@@ -218,6 +219,23 @@ def get_drcn(num_recurrence=16):
     model.summary()
     return model
 
+def get_resatsr(factor, filters=64, num_resblocks=16):
+    lr = kl.Input(shape=(None, None, 3))
+    x = kl.Conv2D(filters=filters, kernel_size=9, padding='same')(lr)
+    skip = tf.identity(x)
+    for i in range(num_resblocks):
+        x = residual_block(x, filters, batch_norm=False, scaling=0.1)
+        
+    x += skip
+    if factor == 3:
+        x = kl.Conv2D(filters=factor**2*3, kernel_size=3, padding='same')(x)
+        x = kl.Lambda(lambda z: tf.nn.depth_to_space(z, factor))(x)
+    
+    attention = kl.Conv2D(filters=3, kernel_size=1, padding='same', activation='sigmoid')(x)
+    x = x*attention
+    model = keras.Model(inputs=lr, outputs=x)
+    model.summary()
+    return model
 
 def get_model(name, mag):
     if name == "srcnn":
@@ -240,6 +258,9 @@ def get_model(name, mag):
         
     elif name == "edsr":
         model = get_edsr(mag)
+        
+    elif name == "resatsr":
+        model = get_resatsr(mag)
             
     else:
         raise ValueError("select correct model")
@@ -337,4 +358,18 @@ if __name__ == "__main__":
     if os.path.exists("model.h5"):
         os.remove("model.h5")
     '''
+    model = get_resatsr(3)
+    model.save_weights("weights.h5")
+    model.load_weights("weights.h5")
+    for i in range(17, 26):
+        input_img = kl.Input(shape=(i, i, 3))
+        output = model(input_img)
+        assert output.shape[1] == i*3
+        assert output.shape[2] == i*3
+    model.save("model.h5")
+    model = km.load_model("model.h5")
     
+    if os.path.exists("weight.h5"):
+        os.remove("weights.h5")
+    if os.path.exists("model.h5"):
+        os.remove("model.h5")

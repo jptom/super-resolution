@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--model", type=str, required=True,
-                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr"], 
+                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr", "resatsr"], 
                         help="select model")
     parser.add_argument("--mag", type=int, default=3,
                         help="upsampling factor. Default 3")

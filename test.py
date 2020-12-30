@@ -2,7 +2,7 @@
 import os
 import argparse
 import numpy as np
-from model import get_model
+from models import get_model
 from utils import get_filenames, img_loader, one2four_image, four2one_image
 import cv2 as cv
 
@@ -10,7 +10,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--model", type=str, required=True,
-                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr"], 
+                        choices=["srcnn", "espcn", "fsrcnn", "vdsr", "drcn", "srrennet", "edsr", "resatsr"], 
                         help="select model")
     parser.add_argument("--mag", type=int, required=True,
                         help="upsampling factor")
