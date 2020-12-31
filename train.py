@@ -3,6 +3,7 @@ import argparse
 import os
 #import tensorflow as tf
 import tensorflow.keras as keras
+import tensorflow.keras.callbacks as kc
 #import tensorflow.keras.backend as kb
 #import tensorflow.keras.layers as kl
 #import tensorflow.keras.models as km
@@ -72,9 +73,21 @@ if __name__ == "__main__":
     
     # optimizer
     optimizer = keras.optimizers.Adam(learning_rate=1.0e-4)
-
+    
+    # metrix
     psnr = PSNR(r)
     psnr.__name__ = "psnr"
+    
+    # callbalcks
+    checkpoint_cb = kc.ModelCheckpoint(filepath=args.out, monitor='loss', 
+                               save_weights_only=True, save_freq=100)
+    
+    def scheduler(epoch, lr):
+        return lr/10
+    
+    scheduler_cb = kc.LearningRateScheduler(scheduler)
+    
+    
     # compile model
     print("start compling")
     model.compile(
@@ -89,6 +102,7 @@ if __name__ == "__main__":
         gen,
         steps_per_epoch=args.steps,
         epochs=args.epochs,
+        callbacks=[checkpoint_cb, scheduler_cb]
         )
     
     print("save weights")
@@ -98,3 +112,4 @@ if __name__ == "__main__":
         if not os.path.isdir('log'):
             os.mkdir('log')
         model.save_weights(os.path.join('log','{}_x{}.h5'.format(args.model, args.mag)))
+        

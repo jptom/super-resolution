@@ -38,8 +38,8 @@ def drop_resolution(img, scale):
     return ret_img
 
 def down_sampling(img, dsize):
-    low_img = cv.GaussianBlur(img, (5, 5), 0)
-    low_img = cv.resize(low_img, dsize, interpolation=cv.INTER_CUBIC)
+    #low_img = cv.GaussianBlur(img, (5, 5), 0)
+    low_img = cv.resize(img, dsize, interpolation=cv.INTER_CUBIC)
     
     return low_img
 
