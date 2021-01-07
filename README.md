@@ -1,13 +1,13 @@
 # super-resolution
 
 ## models
-  - SRCNN
-  - ESPCN
-  - FSRCNN
-  - VDSR
-  - DRCN
-  - SRResNet
-  - EDSR
+  - [SRCNN](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN.html)
+  - [ESPCN](https://arxiv.org/abs/1609.05158)
+  - [FSRCNN](https://arxiv.org/abs/1608.00367)
+  - [VDSR](https://arxiv.org/abs/1511.04587)
+  - [DRCN](https://arxiv.org/abs/1511.04491)
+  - [SRResNet](https://arxiv.org/abs/1609.04802)
+  - [EDSR](https://arxiv.org/abs/1707.02921)
 
 ## training
 
